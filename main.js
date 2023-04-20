@@ -91,7 +91,7 @@ function getCard(id) {
                     colors.push(text_element.html())
                 })
 
-            const cardInfo = {
+            const cardInfo = { // TODO: add image base64
                 // cardImage: img,
                 cardImageUrl: img.attr('src'),
                 flavourText: flavourText.html(),

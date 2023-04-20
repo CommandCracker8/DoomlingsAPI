@@ -66,20 +66,41 @@ function getCard(id) {
             const effectText = $('body > div.card-detail-section.wf-section > div > div > div > div.card-stats-column.w-col.w-col-6 > div > div:nth-child(3) > div')
             const cardType = $('body > div.card-detail-section.wf-section > div > div > div > div.card-stats-column.w-col.w-col-6 > div > div:nth-child(8) > div.card-type > div.property-pill > div')
             const subTypes = [];
+            const colors = [];
+            const points = $('body > div.card-detail-section.wf-section > div > div > div > div.card-stats-column.w-col.w-col-6 > div > div:nth-child(8) > div.points > div.property-pill > div')
+            const collection = $('body > div.card-detail-section.wf-section > div > div > div > div.card-stats-column.w-col.w-col-6 > div > div:nth-child(8) > div.collections > div.property-pill > div')
+
+            // $('body > div.card-detail-section.wf-section > div > div > div > div.card-stats-column.w-col.w-col-6 > div > div:nth-child(8) > div.subtype > div.w-dyn-list > div')
+            //     .find('div.subtype-value')
+            //     .each((index, element) => {
+            //         subTypes.push($(element).text().trim());
+            //     });
+
 
             $('body > div.card-detail-section.wf-section > div > div > div > div.card-stats-column.w-col.w-col-6 > div > div:nth-child(8) > div.subtype > div.w-dyn-list > div')
-                .find('div.subtype-value')
+                .children('')
                 .each((index, element) => {
-                    subTypes.push($(element).text().trim());
-                });
+                    const text_element = cheerio.load(element)("div > div.subtype-value")
+                    subTypes.push(text_element.html())
+                })
+
+            $('body > div.card-detail-section.wf-section > div > div > div > div.card-stats-column.w-col.w-col-6 > div > div:nth-child(8) > div.color > div.collection-list-wrapper-2.w-dyn-list > div')
+                .children('')
+                .each((index, element) => {
+                    const text_element = cheerio.load(element)("div:nth-child(1) > div > div")
+                    colors.push(text_element.html())
+                })
 
             const cardInfo = {
-                cardImage: img,
+                // cardImage: img,
                 cardImageUrl: img.attr('src'),
                 flavourText: flavourText.html(),
                 effectText: effectText.html(),
                 cardType: getEnumKey(CardType, cardType.html()),
-                subTypes: subTypes
+                subTypes: subTypes,
+                colors: colors,
+                points: points.html(),
+                collection: collection.html()
             }
 
             return Promise.resolve(cardInfo)
@@ -88,6 +109,11 @@ function getCard(id) {
 
 
 getCard('echolocation-ks')
+    .then((card) => {
+        console.log(card)
+    })
+
+getCard('motley')
     .then((card) => {
         console.log(card)
     })

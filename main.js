@@ -25,21 +25,21 @@ function getRawFromUrl(url) {
 }
 
 function getJqueryFromUrl(url) {
-  return getRawFromUrl(url)
-    .then((rawHtml) => {
-      const $ = cheerio.load(rawHtml);
-      return Promise.resolve($);
-    });
+	return getRawFromUrl(url)
+	.then((rawHtml) => {
+		const $ = cheerio.load(rawHtml);
+		return Promise.resolve($);
+	});
 }
 
 function getJsonFromUrl(url) {
   return getRawFromUrl(url)
     .then((rawData) => {
         try {
-        const jsonData = JSON.parse(rawData);
-        return Promise.resolve(jsonData);
+			const jsonData = JSON.parse(rawData);
+			return Promise.resolve(jsonData);
         } catch (error) {
-        return Promise.reject(error);
+			return Promise.reject(error);
         }
     });
 }
@@ -106,6 +106,54 @@ function getCard(id) {
             return Promise.resolve(cardInfo)
         })
 }
+
+class SearchFilter {
+	constructor(required, multiple_choice, options) {
+		this.required = required
+		this.multiple_choice = multiple_choice
+		this.options = options
+	}
+}
+
+const searchFilters = {
+	edition:      new SearchFilter(true, false, ["kickstarter", "retail"]),
+	collections:  new SearchFilter(false, true, ["Classic", "KSE", "Multi-Color", "Dinolings", "Mythlings", "Techlings", "Meaning of Life", "Overlush"]),
+	cardTypes:    new SearchFilter(false, true, ["Trait", "Age", "Sign"]),
+	cardSubTypes: new SearchFilter(false, true, ["Dominant", "Action", "Play When", "Drop of Life", "Persistent", "Gene Pool", "Catastrophe", "World's End", "Effectless", "Requirement", "Attachment"]),
+	cardColor:    new SearchFilter(false, true, ["Blue", "Green", "Colorless", "Purple", "Red", "Multi-color"]),
+	cardPoints:   new SearchFilter(false, true, ["Zero or Less", "One", "Two", "Three", "Four", "Five", "Six or More", "Variable"]),
+	rarity:       new SearchFilter(false, true, ["Common", "Unusual", "Scarce", "Endangered", "Legendary"])
+}
+
+// Card Edition: https://api.jetboost.io/filter?boosterId=cl3348kjy3y5y0752zfevuoth & q=retail-edition                                                                                                                           & v=2
+// Collections : https://api.jetboost.io/filter?boosterId=cktvz4127jhgc07348lj2hfyk & q=classic&q=kse&q=multi-color&q=dinolings&q=mythlings&q=techlings&q=meaning-of-life&q=overlush                                             & v=2
+// Card Type   : https://api.jetboost.io/filter?boosterId=cktu6a0pzd8ps07241dp0lr2r & q=trait&q=age&q=sign                                                                                                                       & v=2
+// Card SubType: https://api.jetboost.io/filter?boosterId=cktw1x6rk12550793aq3t3qfp & q=dominant&q=action&q=play-when&q=drop-of-life&q=persistent&q=gene-pool&q=catastrophe&q=worlds-end&q=effectless&q=requirement&q=attachment & v=2
+// Card Color  : https://api.jetboost.io/filter?boosterId=cktx0h82aelxw07931ql70o2g & q=blue&q=green&q=colorless&q=purple&q=red&q=multi-color                                                                                    & v=2
+// Card Points : https://api.jetboost.io/filter?boosterId=cktx1jw40f68307931hyogg9v & q=zero-or-less&q=one&q=two&q=three&q=four&q=five&q=six-or-more&q=variable                                                                  & v=2
+// Card Rarity : https://api.jetboost.io/filter?boosterId=cle3adph40xd40678nt850q9e & q=common&q=unusual&q=scarce&q=endangered&q=legendary                                                                                       & v=2
+
+// function compendiumSearch({ edition, collections, cardTypes, cardSubTypes, cardColor, cardPoints, rarity }) {
+function compendiumSearch(filters) {
+	for (const key of Object.keys(searchFilters)) {
+		filtersApplied = filters[key] ?? []
+		if (filtersApplied.length == 0 && searchFilters[key].required) {
+			throw `Filter ${key} has not been supplied but it is a required filter`
+		}
+
+		if (filtersApplied.length > 1 && !searchFilters[key].multiple_choice) {
+			throw `Filter ${key} is not multiple choice but ${filtersApplied.length} filters were provided`
+		}
+
+		if (!Array.isArray(filtersApplied) && searchFilters[key].multiple_choice) {
+			throw `Non-array provided for multiple-choice filter (${key})`
+		}
+	}
+}
+
+compendiumSearch({
+	edition: [ "kickstarter" ]
+})
 
 
 getCard('echolocation-ks')

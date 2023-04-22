@@ -108,21 +108,42 @@ function getCard(id) {
 }
 
 class SearchFilter {
-	constructor(required, multiple_choice, options) {
+	constructor(required, multiple_choice, boosterId, options, prefix="", suffix="") {
 		this.required = required
 		this.multiple_choice = multiple_choice
 		this.options = options
+        this.boosterId = boosterId
+        
+        this.prefix = prefix
+        this.suffix = suffix
 	}
+
+    isValid(filter) {
+        return this.options.includes(filter)
+    }
+
+    preProcess(filter) {
+        return this.prefix + filter + this.suffix
+    }
 }
 
+// const searchFilters = {
+// 	edition:      new SearchFilter(true, false, ["kickstarter", "retail"]),
+// 	collections:  new SearchFilter(false, true, ["Classic", "KSE", "Multi-Color", "Dinolings", "Mythlings", "Techlings", "Meaning of Life", "Overlush"]),
+// 	cardTypes:    new SearchFilter(false, true, ["Trait", "Age", "Sign"]),
+// 	cardSubTypes: new SearchFilter(false, true, ["Dominant", "Action", "Play When", "Drop of Life", "Persistent", "Gene Pool", "Catastrophe", "World's End", "Effectless", "Requirement", "Attachment"]),
+// 	cardColor:    new SearchFilter(false, true, ["Blue", "Green", "Colorless", "Purple", "Red", "Multi-color"]),
+// 	cardPoints:   new SearchFilter(false, true, ["Zero or Less", "One", "Two", "Three", "Four", "Five", "Six or More", "Variable"]),
+// 	rarity:       new SearchFilter(false, true, ["Common", "Unusual", "Scarce", "Endangered", "Legendary"])
+// }
 const searchFilters = {
-	edition:      new SearchFilter(true, false, ["kickstarter", "retail"]),
-	collections:  new SearchFilter(false, true, ["Classic", "KSE", "Multi-Color", "Dinolings", "Mythlings", "Techlings", "Meaning of Life", "Overlush"]),
-	cardTypes:    new SearchFilter(false, true, ["Trait", "Age", "Sign"]),
-	cardSubTypes: new SearchFilter(false, true, ["Dominant", "Action", "Play When", "Drop of Life", "Persistent", "Gene Pool", "Catastrophe", "World's End", "Effectless", "Requirement", "Attachment"]),
-	cardColor:    new SearchFilter(false, true, ["Blue", "Green", "Colorless", "Purple", "Red", "Multi-color"]),
-	cardPoints:   new SearchFilter(false, true, ["Zero or Less", "One", "Two", "Three", "Four", "Five", "Six or More", "Variable"]),
-	rarity:       new SearchFilter(false, true, ["Common", "Unusual", "Scarce", "Endangered", "Legendary"])
+	edition:      new SearchFilter(true, false, "cl3348kjy3y5y0752zfevuoth", ["kickstarter", "retail"], "", "-edition"),
+	collections:  new SearchFilter(false, true, "cktvz4127jhgc07348lj2hfyk", ["classic", "kse", "multi-color", "dinolings", "mythlings", "techlings", "meaning-of-life", "overlush"]),
+	cardTypes:    new SearchFilter(false, true, "cktu6a0pzd8ps07241dp0lr2r", ["trait", "age", "sign"]),
+	cardSubTypes: new SearchFilter(false, true, "cktw1x6rk12550793aq3t3qfp", ["dominant", "action", "play-when", "drop-of-life", "persistent", "gene-pool", "catastrophe", "worlds-end", "effectless", "requirement", "attachment"]),
+	cardColor:    new SearchFilter(false, true, "cktx0h82aelxw07931ql70o2g", ["blue", "green", "colorless", "purple", "red", "multi-color"]),
+	cardPoints:   new SearchFilter(false, true, "cktx1jw40f68307931hyogg9v", ["zero-or-less", "one", "two", "three", "four", "five", "six-or-more", "variable"]),
+	rarity:       new SearchFilter(false, true, "cle3adph40xd40678nt850q9e", ["common", "unusual", "scarce", "endangered", "legendary"])
 }
 
 // Card Edition: https://api.jetboost.io/filter?boosterId=cl3348kjy3y5y0752zfevuoth & q=retail-edition                                                                                                                           & v=2
@@ -134,26 +155,77 @@ const searchFilters = {
 // Card Rarity : https://api.jetboost.io/filter?boosterId=cle3adph40xd40678nt850q9e & q=common&q=unusual&q=scarce&q=endangered&q=legendary                                                                                       & v=2
 
 // function compendiumSearch({ edition, collections, cardTypes, cardSubTypes, cardColor, cardPoints, rarity }) {
-function compendiumSearch(filters) {
+async function compendiumSearch(filters) {
 	for (const key of Object.keys(searchFilters)) {
-		filtersApplied = filters[key] ?? []
+		const filtersApplied = filters[key] ?? []
 		if (filtersApplied.length == 0 && searchFilters[key].required) {
-			throw `Filter ${key} has not been supplied but it is a required filter`
+			throw `Filter '${key}' has not been supplied but it is a required filter`
 		}
 
 		if (filtersApplied.length > 1 && !searchFilters[key].multiple_choice) {
-			throw `Filter ${key} is not multiple choice but ${filtersApplied.length} filters were provided`
+			throw `Filter '${key}' is not multiple choice but ${filtersApplied.length} filters were provided`
 		}
 
 		if (!Array.isArray(filtersApplied) && searchFilters[key].multiple_choice) {
-			throw `Non-array provided for multiple-choice filter (${key})`
+			throw `Non-array provided for multiple-choice filter ('${key}')`
 		}
+
+        for (const filterApplied of filtersApplied) {
+            if (!searchFilters[key].isValid(filterApplied)) {
+                throw `Invalid filter '${filterApplied}' provided for key '${key}'`
+            }
+        }
 	}
+
+
+    let cardsFound = []
+
+    // Compile search URLs
+    const searchURLs = []
+    for (const key of Object.keys(filters)) {
+        const filtersApplied = filters[key] ?? []
+        const searchFilter = searchFilters[key]
+
+        let baseUrl = `https://api.jetboost.io/filter?boosterId=${searchFilter.boosterId}`
+        for (const filter of filtersApplied) {
+            baseUrl += `&q=${searchFilter.preProcess(filter)}`
+        }
+        baseUrl += `&v=2`
+
+        searchURLs.push(baseUrl)
+    }
+    
+    
+    // Resolve the search results
+    const rawSearchResults = []
+    for (const searchUrl of searchURLs) {
+        // searchResults.append()
+        const results = await getJsonFromUrl(searchUrl)
+        rawSearchResults.push(results)
+    }
+
+
+    // Format the results
+    const searchResults = []
+    for (const results of rawSearchResults) {
+        searchResults.push(Object.keys(results))
+    }
+    
+    
+    // Process the results
+    cardsFound = searchResults.reduce((previous, current) => {
+        return previous.filter(element => current.includes(element));
+    });
+
+    return Promise.resolve(cardsFound)
 }
 
-compendiumSearch({
-	edition: [ "kickstarter" ]
-})
+compendiumSearch({edition: [ "retail" ]})
+  .then((cards) => {
+    for (const card of cards) {
+      console.log(card)
+    }
+  })
 
 
 getCard('echolocation-ks')

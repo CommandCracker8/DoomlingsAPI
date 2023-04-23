@@ -1,0 +1,23 @@
+{
+  "name": "doomlings-api",
+  "version": "1.0.0",
+  "description": "An API for the Doomlings Compendium",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/CommandCracker8/DoomlingsAPI.git"
+  },
+  "keywords": [
+    "Doomlings",
+    "API"
+  ],
+  "author": "Commandcracker8",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/CommandCracker8/DoomlingsAPI/issues"
+  },
+  "homepage": "https://github.com/CommandCracker8/DoomlingsAPI#readme"
+}

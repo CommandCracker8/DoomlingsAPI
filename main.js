@@ -220,14 +220,14 @@ async function searchCompendium(filters) {
     return Promise.resolve(cardsFound)
 }
 
-searchCompendium({edition: [ "retail" ], collections: [ "multi-color" ]})
-  .then((cards) => {
-    for (const card of cards) {
-      console.log(card)
-    }
+// searchCompendium({edition: [ "retail" ], collections: [ "multi-color" ]})
+//   .then((cards) => {
+//     for (const card of cards) {
+//       console.log(card)
+//     }
 
-    console.log(`Found ${cards.length} cards`)
-  })
+//     console.log(`Found ${cards.length} cards`)
+//   })
 
 
 // getCard('echolocation-ks')

@@ -19,5 +19,10 @@
   "bugs": {
     "url": "https://github.com/CommandCracker8/DoomlingsAPI/issues"
   },
-  "homepage": "https://github.com/CommandCracker8/DoomlingsAPI#readme"
+  "homepage": "https://github.com/CommandCracker8/DoomlingsAPI#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.12",
+    "http": "^0.0.1-security",
+    "https": "^1.0.0"
+  }
 }

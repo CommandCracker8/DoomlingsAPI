@@ -155,7 +155,7 @@ const searchFilters = {
 // Card Rarity : https://api.jetboost.io/filter?boosterId=cle3adph40xd40678nt850q9e & q=common&q=unusual&q=scarce&q=endangered&q=legendary                                                                                       & v=2
 
 // function compendiumSearch({ edition, collections, cardTypes, cardSubTypes, cardColor, cardPoints, rarity }) {
-async function compendiumSearch(filters) {
+async function searchCompendium(filters) {
 	for (const key of Object.keys(searchFilters)) {
 		const filtersApplied = filters[key] ?? []
 		if (filtersApplied.length == 0 && searchFilters[key].required) {
@@ -220,20 +220,22 @@ async function compendiumSearch(filters) {
     return Promise.resolve(cardsFound)
 }
 
-compendiumSearch({edition: [ "retail" ]})
+searchCompendium({edition: [ "retail" ], collections: [ "multi-color" ]})
   .then((cards) => {
     for (const card of cards) {
       console.log(card)
     }
+
+    console.log(`Found ${cards.length} cards`)
   })
 
 
-getCard('echolocation-ks')
-    .then((card) => {
-        console.log(card)
-    })
+// getCard('echolocation-ks')
+//     .then((card) => {
+//         console.log(card)
+//     })
 
-getCard('motley')
-    .then((card) => {
-        console.log(card)
-    })
+// getCard('motley')
+//     .then((card) => {
+//         console.log(card)
+//     })
